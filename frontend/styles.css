@@ -1,0 +1,138 @@
+body {
+    background: #f3f5f7;
+    color: #20252b;
+    font-family: Arial, sans-serif;
+}
+
+.site-header {
+    background: #172b3a;
+    border-bottom: 4px solid #e31837;
+    color: white;
+    padding: 1.5rem 1rem;
+    text-align: center;
+}
+
+.site-header h1,
+.site-header p {
+    margin: 0;
+}
+
+.site-header h1 {
+    font-size: 2rem;
+}
+
+.site-header p {
+    color: #d7e0e7;
+    margin-top: 0.25rem;
+}
+
+#app {
+    background: white;
+    border: 1px solid #d9e0e6;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(23, 43, 58, 0.08);
+    margin: 2rem auto;
+    max-width: 1000px;
+    padding: 1.5rem;
+}
+
+#app h3 {
+    border-bottom: 2px solid #d9e0e6;
+    color: #172b3a;
+    font-size: 1.25rem;
+    margin-top: 1.75rem;
+    padding-bottom: 0.5rem;
+}
+
+#app h3:first-child {
+    margin-top: 0;
+}
+
+input {
+    border: 1px solid #b8c4ce;
+    border-radius: 4px;
+    margin: 0.25rem;
+    padding: 0.5rem;
+}
+
+input:focus {
+    border-color: #1d5d8f;
+    outline: 2px solid rgba(29, 93, 143, 0.2);
+}
+
+button.btn {
+    background: #1d5d8f;
+    border-color: #1d5d8f;
+    margin: 0.25rem;
+}
+
+button.btn:hover {
+    background: #164a73;
+    border-color: #164a73;
+}
+
+button.btn-success {
+    background: #1d5d8f;
+    border-color: #1d5d8f;
+}
+
+button.btn-warning {
+    background: #c6283d;
+    border-color: #c6283d;
+    color: white;
+}
+
+button.btn-warning:hover {
+    background: #a51f31;
+    border-color: #a51f31;
+}
+
+ul {
+    background: #fafbfc;
+    border: 1px solid #d9e0e6;
+    border-radius: 4px;
+    margin-top: 1rem;
+    padding: 1rem 1rem 1rem 2rem;
+}
+
+table {
+    background: white;
+    margin-top: 1rem;
+}
+
+table th button {
+    background: transparent;
+    border: 0;
+    color: #172b3a;
+    font-weight: bold;
+    padding: 0;
+}
+
+.year-sort-button {
+    background: #e8eef3 !important;
+    border: 1px solid #b8c4ce !important;
+    border-radius: 4px;
+    color: #1d5d8f !important;
+    font-size: 0.8rem;
+    font-weight: normal !important;
+    margin-left: 0.25rem;
+    padding: 0.2rem 0.45rem !important;
+}
+
+.year-sort-button:hover {
+    background: #d7e3ec !important;
+    color: #164a73 !important;
+}
+
+@media (max-width: 600px) {
+    #app {
+        border: 0;
+        border-radius: 0;
+        margin: 0;
+        padding: 1rem;
+    }
+
+    input {
+        max-width: 100%;
+    }
+}

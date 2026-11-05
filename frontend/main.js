@@ -13,16 +13,16 @@ Vue.createApp({
             singleRecord: null,
             deleteId: null,
             deleteMessage: "",
-            addData: { title: "", artist: "", year: null },
+            addData: { title: "", artist: "", publicationYear: null },
             addMessage: "",
-            updateData: { id: null, title: "", artist: "", year: null },
+            updateData: { id: null, title: "", artist: "", publicationYear: null },
             updateMessage: ""
         }
     },
 
-    async created() { // life cycle method. Called when browser reloads page
+    /*async created() { // life cycle method. Called when browser reloads page
         this.getAll(baseUrl)
-    },
+    },*/
 
     methods: {
         getAllRecords() {
@@ -42,39 +42,27 @@ Vue.createApp({
             }
         },
         async getById(id) {
-    if (id === null || id === undefined || isNaN(id) || id <= 0) {
-        alert("Please enter a valid record ID")
-        return
-    }
-
-    const url = baseUrl + "/" + id
-    console.log(url)
-
-    try {
-        const response = await axios.get(url)
-
-        this.singleRecord = response.data
-
-        console.log(response)
-
-    } catch (ex) {
-        this.singleRecord = null
-
-        console.log(ex.response)
-
-        if (ex.response && ex.response.status === 404) {
-            alert("No record found with this ID")
-        } else {
-            alert(ex.message)
-        }
-    }
-},
+            if (id === null || id === undefined || isNaN(id) || id <= 0) {
+                alert("Please enter a valid record ID")
+                return
+            }
+            const url = baseUrl + "/" + id
+            console.log(url)
+            try {
+                const response = await axios.get(url)
+                this.singleRecord = response.data
+                console.log(response)
+            } catch (ex) {
+                this.singleRecord = null
+                alert(ex.message)
+            }
+        },
         async addRecord() {
-            if (this.addData.title === "" || this.addData.year === null || this.addData.year <= 0) {
+            if (this.addData.title === "" || this.addData.publicationYear === null || this.addData.publicationYear <= 0) {
                 alert("Please fill in all fields with valid values")
                 return
             }
-            // TODO more validation (title, year)
+            // TODO more validation (title, publicationYear)
             try {
                 const response = await axios.post(baseUrl, this.addData)
                 this.addMessage = "response " + response.status + " " + response.statusText
@@ -104,7 +92,7 @@ Vue.createApp({
                 alert("Please enter a valid record ID")
                 return
             }
-            // TODO more validation (title, year)
+            // TODO more validation (title, publicationYear)
             const url = baseUrl + "/" + this.updateData.id
             try {
                 const response = await axios.put(url, this.updateData)
@@ -134,10 +122,10 @@ Vue.createApp({
             this.records.sort((record1, record2) => record1.title.localeCompare(record2.title))
         },
         sortByYearAscending() {
-            this.records.sort((record1, record2) => record1.year - record2.year)
+            this.records.sort((record1, record2) => record1.publicationYear - record2.publicationYear)
         },
         sortByYearDescending() {
-            this.records.sort((record1, record2) => record2.year - record1.year)
+            this.records.sort((record1, record2) => record2.publicationYear - record1.publicationYear)
         },
 
         filterByTitle(title) {

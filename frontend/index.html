@@ -1,293 +1,107 @@
-
 <!DOCTYPE html>
-<html lang="da">
+<html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Danmarks Radio - Records</title>
-
+    <!-- https://www.bootstrapcdn.com/ -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="styles.css">
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.js"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <title>Danmarks Radio</title>
 </head>
 
 <body>
+    <header class="site-header">
+        <h1>Danmarks Radio</h1>
+        <p>Music Records</p>
+    </header>
 
-<div id="app">
+    <div id="app">
+        <h3>Get All Music Records</h3> <!-- Get all records -->
+        <button id="getAllButton" v-on:click="getAllRecords" class="btn btn-primary">Get all records</button>
+        <br />
 
-    <nav class="navbar">
-        <div class="dr-logo">
-            DR<span>.</span> Danmarks Radio
-        </div>
-    </nav>
+        <input v-model="titleToGetBy" placeholder="title" type="text" v-on:keyup.enter="getByTitle(titleToGetBy)" />
+        <button v-on:click="getByTitle(titleToGetBy)" class="btn btn-primary">Get by title</button>
 
-    <div class="hero">
-        <div class="container">
-            <h1>Music Records</h1>
-            <p>Administrer og find musik i Danmarks Radios database.</p>
-        </div>
+        <ul id="recordlist" v-if="records.length">
+            <li v-for="record in records" :key="record.id">
+                {{record.id}} : {{record.title}} {{ record.artist}} {{record.publicationYear}}
+            </li>
+        </ul>
+        <div v-else>No records</div>
+
+        <!--<h3>Get by ID</h3> Get record by id
+        <input v-model="idToGetBy" placeholder="id" type="number" />
+        <button v-on:click="getById(idToGetBy)" class="btn btn-primary">Get by id</button>
+        <div v-if="singleRecord">
+            {{singleRecord.id}} {{singleRecord.title}} {{singleRecord.artist}} {{singleRecord.publicationYear}}
+        </main>
+        <div v-else>No such record</div>-->
+
+        <h3>Add New Record</h3> <!-- Add new record -->
+        <input id="addTitleInput" v-model="addData.title" placeholder="title" type="text" />
+        <input id="addArtistInput" v-model="addData.artist" placeholder="artist" type="text" />
+        <input id="addPublicationYearInput" v-model.number="addData.publicationYear" placeholder="publication year"
+            type="number" />
+        <button id="addButton" v-on:click="addRecord()" class="btn btn-success">Add</button>
+        <div id="addMessage">{{addMessage}}</div>
+
+        <h3>Delete Record</h3> <!-- Delete record by id -->
+        <input v-model.number="deleteId" placeholder="id" type="number" />
+        <button v-on:click="deleteRecord(deleteId)" class="btn btn-warning">Delete</button>
+        {{deleteMessage}}
+
+        <h3>Update Record</h3> <!-- Update record by id -->
+        <input v-model.number="updateData.id" placeholder="id" type="number" />
+        <input v-model="updateData.title" placeholder="title" type="text" />
+        <input v-model="updateData.artist" placeholder="artist" type="text" />
+        <input v-model.number="updateData.publicationYear" placeholder="publication year" type="number" />
+        <button v-on:click="updateRecord()" class="btn btn-success">Update</button>
+        <div>{{updateMessage}}</div>
+
+        <!--Records, sort + filter in JavaScript-->
+        <h3>Find and sort records</h3>
+
+        <input placeholder="Title" type="text" v-model="title" v-on:keyup.enter="filterByTitle(title)">
+        <button v-on:click="filterByTitle(title)" class="btn btn-primary">
+            Filter
+        </button>
+        <table v-if="records.length > 0" class="table table-striped">
+            <thead>
+                <tr>
+                    <th><button v-on:click="sortById()">Id</button></th>
+                    <th><button v-on:click="sortByTitle()">Title</button></th>
+                    <th>
+                        Publication Year
+                        <button class="year-sort-button" v-on:click="sortByYearAscending()"
+                            aria-label="Sort publication year ascending">
+                            ↑
+                        </button>
+                        <button class="year-sort-button" v-on:click="sortByYearDescending()"
+                            aria-label="Sort publication year descending">
+                            ↓
+                        </button>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="record in records">
+                    <td>{{record.id}}</td>
+                    <td>{{record.title}}</td>
+                    <td>{{record.publicationYear}}</td>
+                </tr>
+            </tbody>
+        </table>
+        <div v-else>No such records</div>
     </div>
 
-    <div class="container">
-
-        <!-- Get All og søgning -->
-        <div class="dr-card">
-            <h3>Musikbibliotek</h3>
-
-            <button id="getAllButton"
-                    @click="getAllRecords()"
-                    class="btn btn-dr mb-3">
-                Get All Records
-            </button>
-
-            <div class="form-row">
-                <div class="col-md-8 mb-2">
-                    <input
-                        id="titleToGetByInput"
-                        v-model="titleToGetBy"
-                        placeholder="Search by title..."
-                        class="form-control"
-                        @keyup.enter="getByTitle(titleToGetBy)">
-                </div>
-
-                <div class="col-md-4 mb-2">
-                    <button id="getByTitleButton"
-                            @click="getByTitle(titleToGetBy)"
-                            class="btn btn-primary">
-                        Get by Title
-                    </button>
-                </div>
-            </div>
-
-            <div class="table-responsive mt-3">
-
-                <table id="recordTable"
-                       v-if="records.length > 0"
-                       class="table table-striped table-hover">
-
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-
-                            <th>
-                                <button id="sortByTitleButton"
-                                        @click="sortByTitle()"
-                                        class="btn btn-sm btn-light">
-                                    Sort by Title
-                                </button>
-                            </th>
-
-                            <th>
-                                <button id="sortByArtistButton"
-                                        @click="sortByArtist()"
-                                        class="btn btn-sm btn-light">
-                                    Sort by Artist
-                                </button>
-                            </th>
-
-                            <th>
-                                <button id="sortByYearAscendingButton"
-                                        @click="sortByYearAscending()"
-                                        class="btn btn-sm btn-light">
-                                    PublicationYear ↑
-                                </button>
-
-                                <button id="sortByYearDescendingButton"
-                                        @click="sortByYearDescending()"
-                                        class="btn btn-sm btn-light">
-                                    PublicationYear ↓
-                                </button>
-                            </th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="recordlist">
-                        <tr v-for="record in records" :key="record.id">
-                            <td>{{ record.id }}</td>
-                            <td>{{ record.title }}</td>
-                            <td>{{ record.artist }}</td>
-                            <td>{{ record.year }}</td>
-                        </tr>
-                    </tbody>
-
-                </table>
-
-                <p v-else class="text-muted mt-3">
-                    No records found.
-                </p>
-
-            </div>
-
-            <input
-                id="filterTitleInput"
-                v-model="title"
-                placeholder="Filter loaded records by title"
-                class="form-control mt-3"
-                @keyup.enter="filterByTitle(title)">
-
-            <button id="filterButton"
-                    @click="filterByTitle(title)"
-                    class="btn btn-secondary mt-2">
-                Filter
-            </button>
-
-        </div>
-
-        <!-- Get by ID -->
-        <div class="dr-card">
-            <h3>Get Record by ID</h3>
-
-            <div class="form-row">
-
-                <div class="col-md-8 mb-2">
-                    <input
-                        id="idToGetByInput"
-                        v-model.number="idToGetBy"
-                        type="number"
-                        placeholder="Enter record ID"
-                        class="form-control">
-                </div>
-
-                <div class="col-md-4">
-                    <button id="getByIdButton"
-                            @click="getById(idToGetBy)"
-                            class="btn btn-primary">
-                        Get by ID
-                    </button>
-                </div>
-
-            </div>
-
-            <div id="singleRecordResult"
-                 v-if="singleRecord"
-                 class="record-result">
-
-                <strong>ID:</strong> {{ singleRecord.id }}<br>
-                <strong>Title:</strong> {{ singleRecord.title }}<br>
-                <strong>Artist:</strong> {{ singleRecord.artist }}<br>
-                <strong>Year:</strong> {{ singleRecord.year }}
-
-            </div>
-
-        </div>
-
-        <!-- Delete -->
-        <div class="dr-card">
-            <h3>Delete Record</h3>
-
-            <div class="form-row">
-
-                <div class="col-md-8 mb-2">
-                    <input
-                        id="deleteIdInput"
-                        v-model.number="deleteId"
-                        type="number"
-                        placeholder="Record ID"
-                        class="form-control">
-                </div>
-
-                <div class="col-md-4">
-                    <button id="deleteButton"
-                            @click="deleteRecord(deleteId)"
-                            class="btn btn-danger">
-                        Delete Record
-                    </button>
-                </div>
-
-            </div>
-
-            <p id="deleteMessage" class="status-message">
-                {{ deleteMessage }}
-            </p>
-
-        </div>
-
-        <!-- Add -->
-        <div class="dr-card">
-            <h3>Add New Record</h3>
-
-            <input
-                id="addTitleInput"
-                v-model="addData.title"
-                placeholder="Title"
-                class="form-control mb-3">
-
-            <input
-                id="addArtistInput"
-                v-model="addData.artist"
-                placeholder="Artist"
-                class="form-control mb-3">
-
-            <input
-                id="addYearInput"
-                v-model.number="addData.year"
-                type="number"
-                placeholder="Year"
-                class="form-control mb-3">
-
-            <button id="addButton"
-                    @click="addRecord()"
-                    class="btn btn-success">
-                Add Record
-            </button>
-
-            <p id="addMessage" class="status-message">
-                {{ addMessage }}
-            </p>
-
-        </div>
-
-        <!-- Update -->
-        <div class="dr-card">
-            <h3>Update Record</h3>
-
-            <input
-                id="updateIdInput"
-                v-model.number="updateData.id"
-                type="number"
-                placeholder="Record ID"
-                class="form-control mb-3">
-
-            <input
-                id="updateTitleInput"
-                v-model="updateData.title"
-                placeholder="New title"
-                class="form-control mb-3">
-
-            <input
-                id="updateArtistInput"
-                v-model="updateData.artist"
-                placeholder="New artist"
-                class="form-control mb-3">
-
-            <input
-                id="updateYearInput"
-                v-model.number="updateData.year"
-                type="number"
-                placeholder="New year"
-                class="form-control mb-3">
-
-            <button id="updateButton"
-                    @click="updateRecord()"
-                    class="btn btn-warning">
-                Update Record
-            </button>
-
-            <p id="updateMessage" class="status-message">
-                {{ updateMessage }}
-            </p>
-
-        </div>
-
-    </div>
-
-</div>
-
-<script src="src/main.js"></script>
-<link rel="stylesheet" href="style.css">
+    <script src="main.js"></script>
 
 </body>
+
 </html>
