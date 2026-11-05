@@ -1,138 +1,232 @@
-const baseUrl = "https://localhost:7047/api/MusicRecord"
+
+const baseUrl = "https://localhost:7047/api/MusicRecord";
 
 Vue.createApp({
     data() {
         return {
             records: [],
             allRecords: [],
-            title: null,
-            artist: null,
+
+            title: "",
+            artist: "",
 
             titleToGetBy: "",
             idToGetBy: null,
             singleRecord: null,
+
             deleteId: null,
             deleteMessage: "",
-            addData: { title: "", artist: "", publicationYear: null },
+
+            addData: {
+                title: "",
+                artist: "",
+                publicationYear: null,
+                duration: null
+            },
             addMessage: "",
-            updateData: { id: null, title: "", artist: "", publicationYear: null },
+
+            updateData: {
+                id: null,
+                title: "",
+                artist: "",
+                publicationYear: null,
+                duration: null
+            },
             updateMessage: ""
-        }
+        };
     },
 
-    /*async created() { // life cycle method. Called when browser reloads page
-        this.getAll(baseUrl)
-    },*/
+    // Load records when website opens
+    created() {
+        this.getAllRecords();
+    },
 
     methods: {
+
+        // GET ALL
         getAllRecords() {
-            this.getAll(baseUrl)
+            return this.getAll(baseUrl);
         },
-        getByTitle(title) { // filter records by title
-            const url = baseUrl + "?titleContains=" + title
-            this.getRecords(url)
+
+        // GET BY TITLE
+        getByTitle(title) {
+            if (!title || title.trim() === "") {
+                this.getAllRecords();
+                return;
+            }
+
+            const url = baseUrl + "?titleContains=" +
+                encodeURIComponent(title);
+
+            this.getRecords(url);
         },
-        async getRecords(url) { // helper method: getAllRecords + getByTitle are very similar
+
+        // GET RECORDS
+        async getRecords(url) {
             try {
-                const response = await axios.get(url)
-                this.records = response.data
-                console.log(response.data)
+                const response = await axios.get(url);
+                this.records = response.data;
+                console.log(response.data);
             } catch (ex) {
-                alert(ex.message) // https://www.w3schools.com/js/js_popup.asp
-            }
-        },
-        async getById(id) {
-            if (id === null || id === undefined || isNaN(id) || id <= 0) {
-                alert("Please enter a valid record ID")
-                return
-            }
-            const url = baseUrl + "/" + id
-            console.log(url)
-            try {
-                const response = await axios.get(url)
-                this.singleRecord = response.data
-                console.log(response)
-            } catch (ex) {
-                this.singleRecord = null
-                alert(ex.message)
-            }
-        },
-        async addRecord() {
-            if (this.addData.title === "" || this.addData.publicationYear === null || this.addData.publicationYear <= 0) {
-                alert("Please fill in all fields with valid values")
-                return
-            }
-            // TODO more validation (title, publicationYear)
-            try {
-                const response = await axios.post(baseUrl, this.addData)
-                this.addMessage = "response " + response.status + " " + response.statusText
-                this.getAllRecords()
-            } catch (ex) {
-                alert(ex.message)
-            }
-        },
-        async deleteRecord(id) {
-            console.log(id)
-            if (id === null || id === undefined || isNaN(id) || id <= 0) {
-                alert("Please enter a valid record ID")
-                return
-            }
-            const url = baseUrl + "/" + id
-            try {
-                const response = await axios.delete(url)
-                this.deleteMessage = response.status + " " + response.statusText
-                this.getAllRecords()
-                console.log(response)
-            } catch (ex) {
-                alert(ex.message)
-            }
-        },
-        async updateRecord() {
-            if (this.updateData.id === null || this.updateData.id === undefined || isNaN(this.updateData.id) || this.updateData.id <= 0) {
-                alert("Please enter a valid record ID")
-                return
-            }
-            // TODO more validation (title, publicationYear)
-            const url = baseUrl + "/" + this.updateData.id
-            try {
-                const response = await axios.put(url, this.updateData)
-                this.updateMessage = "response " + response.status + " " + response.statusText
-                this.getAllRecords()
-            } catch (ex) {
-                alert(ex.message)
+                alert(ex.message);
             }
         },
 
-        //--- Sort og filter --- 
+        // GET BY ID
+        async getById(id) {
+            if (!id || isNaN(id) || id <= 0) {
+                alert("Please enter a valid record ID");
+                return;
+            }
+
+            const url = baseUrl + "/" + id;
+
+            try {
+                const response = await axios.get(url);
+                this.singleRecord = response.data;
+            } catch (ex) {
+                this.singleRecord = null;
+                alert(ex.message);
+            }
+        },
+
+        // ADD RECORD
+        async addRecord() {
+            if (
+                !this.addData.title.trim() ||
+                !this.addData.artist.trim() ||
+                !this.addData.publicationYear ||
+                this.addData.publicationYear <= 0 ||
+                !this.addData.duration ||
+                this.addData.duration <= 0
+            ) {
+                alert("Please fill in all fields");
+                return;
+            }
+
+            try {
+                const response = await axios.post(
+                    baseUrl,
+                    this.addData
+                );
+
+                this.addMessage = "Record added successfully!";
+
+                console.log("Added:", response.data);
+
+                this.addData = {
+                    title: "",
+                    artist: "",
+                    publicationYear: null,
+                    duration: null
+                };
+
+                await this.getAllRecords();
+
+            } catch (ex) {
+                alert(ex.message);
+            }
+        },
+
+        // DELETE RECORD
+        async deleteRecord(id) {
+            if (!id || isNaN(id) || id <= 0) {
+                alert("Please enter a valid record ID");
+                return;
+            }
+
+            const url = baseUrl + "/" + id;
+
+            try {
+                await axios.delete(url);
+
+                this.deleteMessage = "Record deleted!";
+
+                await this.getAllRecords();
+
+            } catch (ex) {
+                alert(ex.message);
+            }
+        },
+
+        // UPDATE RECORD
+        async updateRecord() {
+            if (
+                !this.updateData.id ||
+                this.updateData.id <= 0
+            ) {
+                alert("Please enter a valid record ID");
+                return;
+            }
+
+            const url = baseUrl + "/" + this.updateData.id;
+
+            try {
+                await axios.put(url, this.updateData);
+
+                this.updateMessage = "Record updated!";
+
+                await this.getAllRecords();
+
+            } catch (ex) {
+                alert(ex.message);
+            }
+        },
+
+        // GET ALL FOR SORTING AND FILTERING
         async getAll(url) {
             try {
-                const response = await axios.get(url)
-                this.allRecords = response.data
-                this.records = this.allRecords
-                console.log(this.allRecords)
+                const response = await axios.get(url);
+
+                this.allRecords = response.data;
+                this.records = [...this.allRecords];
+
+                console.log(this.allRecords);
+
             } catch (ex) {
-                alert(ex.message) // https://www.w3schools.com/js/js_popup.asp
+                alert(ex.message);
             }
         },
+
+        // SORT BY ID
         sortById() {
-            // https://www.w3schools.com/js/js_array_sort.asp
-            this.records.sort((record1, record2) => record1.id - record2.id)
-        },
-        sortByTitle() {
-            this.records.sort((record1, record2) => record1.title.localeCompare(record2.title))
-        },
-        sortByYearAscending() {
-            this.records.sort((record1, record2) => record1.publicationYear - record2.publicationYear)
-        },
-        sortByYearDescending() {
-            this.records.sort((record1, record2) => record2.publicationYear - record1.publicationYear)
+            this.records.sort((a, b) => a.id - b.id);
         },
 
+        // SORT BY TITLE
+        sortByTitle() {
+            this.records.sort((a, b) =>
+                a.title.localeCompare(b.title)
+            );
+        },
+
+        // SORT BY PUBLICATION YEAR ASCENDING
+        sortByYearAscending() {
+            this.records.sort((a, b) =>
+                a.publicationYear - b.publicationYear
+            );
+        },
+
+        // SORT BY PUBLICATION YEAR DESCENDING
+        sortByYearDescending() {
+            this.records.sort((a, b) =>
+                b.publicationYear - a.publicationYear
+            );
+        },
+
+        // FILTER BY TITLE
         filterByTitle(title) {
-            console.log("Title:" + title + ":")
-            console.log("All records " + this.allRecords)
-            this.records = this.allRecords.filter(r => r.title.includes(title))
-            console.log("filtered Records: " + this.records)
+            if (!title) {
+                this.records = [...this.allRecords];
+                return;
+            }
+
+            this.records = this.allRecords.filter(record =>
+                record.title.toLowerCase().includes(
+                    title.toLowerCase()
+                )
+            );
         }
     }
-}).mount("#app")
+
+}).mount("#app");
