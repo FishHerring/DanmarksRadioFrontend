@@ -1,0 +1,80 @@
+
+body {
+    background-color: #f2f4f8;
+    font-family: Arial, sans-serif;
+    color: #202b3c;
+}
+
+.navbar {
+    background-color: #071b3b;
+    padding: 18px 30px;
+}
+
+.dr-logo {
+    color: white;
+    font-size: 26px;
+    font-weight: bold;
+}
+
+.dr-logo span {
+    color: #e31837;
+}
+
+.hero {
+    background-color: #071b3b;
+    color: white;
+    padding: 35px;
+    margin-bottom: 30px;
+    border-radius: 0 0 12px 12px;
+}
+
+.hero h1 {
+    font-weight: bold;
+}
+
+.dr-card {
+    background: white;
+    padding: 25px;
+    margin-bottom: 25px;
+    border-radius: 10px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+}
+
+.dr-card h3 {
+    font-weight: bold;
+    margin-bottom: 20px;
+    border-left: 4px solid #e31837;
+    padding-left: 12px;
+}
+
+.btn-dr {
+    background-color: #e31837;
+    color: white;
+    border: none;
+}
+
+.btn-dr:hover {
+    background-color: #bd102b;
+    color: white;
+}
+
+.table thead {
+    background-color: #071b3b;
+    color: white;
+}
+
+.form-control {
+    border-radius: 6px;
+}
+
+.status-message {
+    margin-top: 12px;
+    color: #087443;
+}
+
+.record-result {
+    background: #f2f4f8;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+}

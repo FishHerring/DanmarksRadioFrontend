@@ -8,91 +8,10 @@
     <title>Danmarks Radio - Records</title>
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="styles.css">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.js"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-
-    <style>
-        body {
-            background-color: #f2f4f8;
-            font-family: Arial, sans-serif;
-            color: #202b3c;
-        }
-
-        .navbar {
-            background-color: #071b3b;
-            padding: 18px 30px;
-        }
-
-        .dr-logo {
-            color: white;
-            font-size: 26px;
-            font-weight: bold;
-        }
-
-        .dr-logo span {
-            color: #e31837;
-        }
-
-        .hero {
-            background-color: #071b3b;
-            color: white;
-            padding: 35px;
-            margin-bottom: 30px;
-            border-radius: 0 0 12px 12px;
-        }
-
-        .hero h1 {
-            font-weight: bold;
-        }
-
-        .dr-card {
-            background: white;
-            padding: 25px;
-            margin-bottom: 25px;
-            border-radius: 10px;
-            box-shadow: 0 3px 12px rgba(0,0,0,0.06);
-        }
-
-        .dr-card h3 {
-            font-weight: bold;
-            margin-bottom: 20px;
-            border-left: 4px solid #e31837;
-            padding-left: 12px;
-        }
-
-        .btn-dr {
-            background-color: #e31837;
-            color: white;
-            border: none;
-        }
-
-        .btn-dr:hover {
-            background-color: #bd102b;
-            color: white;
-        }
-
-        .table thead {
-            background-color: #071b3b;
-            color: white;
-        }
-
-        .form-control {
-            border-radius: 6px;
-        }
-
-        .status-message {
-            margin-top: 12px;
-            color: #087443;
-        }
-
-        .record-result {
-            background: #f2f4f8;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-        }
-    </style>
 </head>
 
 <body>
@@ -118,13 +37,16 @@
         <div class="dr-card">
             <h3>Musikbibliotek</h3>
 
-            <button @click="getAllRecords()" class="btn btn-dr mb-3">
+            <button id="getAllButton"
+                    @click="getAllRecords()"
+                    class="btn btn-dr mb-3">
                 Get All Records
             </button>
 
             <div class="form-row">
                 <div class="col-md-8 mb-2">
                     <input
+                        id="titleToGetByInput"
                         v-model="titleToGetBy"
                         placeholder="Search by title..."
                         class="form-control"
@@ -132,43 +54,62 @@
                 </div>
 
                 <div class="col-md-4 mb-2">
-                    <button @click="getByTitle(titleToGetBy)" class="btn btn-primary">
+                    <button id="getByTitleButton"
+                            @click="getByTitle(titleToGetBy)"
+                            class="btn btn-primary">
                         Get by Title
-                    </button>
-
-                    <button @click="filterByTitle(title)" class="btn btn-secondary">
-                        Filter
                     </button>
                 </div>
             </div>
 
             <div class="table-responsive mt-3">
 
-                <table v-if="records.length > 0" class="table table-striped table-hover">
+                <table id="recordTable"
+                       v-if="records.length > 0"
+                       class="table table-striped table-hover">
 
                     <thead>
                         <tr>
                             <th>ID</th>
 
                             <th>
-                                <button @click="sortByTitle()" class="btn btn-sm btn-light">
+                                <button id="sortByTitleButton"
+                                        @click="sortByTitle()"
+                                        class="btn btn-sm btn-light">
                                     Sort by Title
                                 </button>
                             </th>
 
                             <th>
-                                <button @click="sortByArtist()" class="btn btn-sm btn-light">
+                                <button id="sortByArtistButton"
+                                        @click="sortByArtist()"
+                                        class="btn btn-sm btn-light">
                                     Sort by Artist
+                                </button>
+                            </th>
+
+                            <th>
+                                <button id="sortByYearAscendingButton"
+                                        @click="sortByYearAscending()"
+                                        class="btn btn-sm btn-light">
+                                    Year ↑
+                                </button>
+
+                                <button id="sortByYearDescendingButton"
+                                        @click="sortByYearDescending()"
+                                        class="btn btn-sm btn-light">
+                                    Year ↓
                                 </button>
                             </th>
                         </tr>
                     </thead>
 
-                    <tbody>
+                    <tbody id="recordlist">
                         <tr v-for="record in records" :key="record.id">
                             <td>{{ record.id }}</td>
                             <td>{{ record.title }}</td>
                             <td>{{ record.artist }}</td>
+                            <td>{{ record.year }}</td>
                         </tr>
                     </tbody>
 
@@ -181,13 +122,19 @@
             </div>
 
             <input
+                id="filterTitleInput"
                 v-model="title"
                 placeholder="Filter loaded records by title"
                 class="form-control mt-3"
                 @keyup.enter="filterByTitle(title)">
 
-        </div>
+            <button id="filterButton"
+                    @click="filterByTitle(title)"
+                    class="btn btn-secondary mt-2">
+                Filter
+            </button>
 
+        </div>
 
         <!-- Get by ID -->
         <div class="dr-card">
@@ -197,6 +144,7 @@
 
                 <div class="col-md-8 mb-2">
                     <input
+                        id="idToGetByInput"
                         v-model.number="idToGetBy"
                         type="number"
                         placeholder="Enter record ID"
@@ -204,21 +152,27 @@
                 </div>
 
                 <div class="col-md-4">
-                    <button @click="getById(idToGetBy)" class="btn btn-primary">
+                    <button id="getByIdButton"
+                            @click="getById(idToGetBy)"
+                            class="btn btn-primary">
                         Get by ID
                     </button>
                 </div>
 
             </div>
 
-            <div v-if="singleRecord" class="record-result">
+            <div id="singleRecordResult"
+                 v-if="singleRecord"
+                 class="record-result">
+
                 <strong>ID:</strong> {{ singleRecord.id }}<br>
                 <strong>Title:</strong> {{ singleRecord.title }}<br>
-                <strong>Artist:</strong> {{ singleRecord.artist }}
+                <strong>Artist:</strong> {{ singleRecord.artist }}<br>
+                <strong>Year:</strong> {{ singleRecord.year }}
+
             </div>
 
         </div>
-
 
         <!-- Delete -->
         <div class="dr-card">
@@ -228,6 +182,7 @@
 
                 <div class="col-md-8 mb-2">
                     <input
+                        id="deleteIdInput"
                         v-model.number="deleteId"
                         type="number"
                         placeholder="Record ID"
@@ -235,66 +190,95 @@
                 </div>
 
                 <div class="col-md-4">
-                    <button @click="deleteRecord(deleteId)" class="btn btn-danger">
+                    <button id="deleteButton"
+                            @click="deleteRecord(deleteId)"
+                            class="btn btn-danger">
                         Delete Record
                     </button>
                 </div>
 
             </div>
 
-            <p class="status-message">{{ deletemessage }}</p>
+            <p id="deleteMessage" class="status-message">
+                {{ deleteMessage }}
+            </p>
 
         </div>
-
 
         <!-- Add -->
         <div class="dr-card">
             <h3>Add New Record</h3>
 
             <input
+                id="addTitleInput"
                 v-model="addData.title"
                 placeholder="Title"
                 class="form-control mb-3">
 
             <input
+                id="addArtistInput"
                 v-model="addData.artist"
                 placeholder="Artist"
                 class="form-control mb-3">
 
-            <button @click="addRecord()" class="btn btn-success">
+            <input
+                id="addYearInput"
+                v-model.number="addData.year"
+                type="number"
+                placeholder="Year"
+                class="form-control mb-3">
+
+            <button id="addButton"
+                    @click="addRecord()"
+                    class="btn btn-success">
                 Add Record
             </button>
 
-            <p class="status-message">{{ addmessage }}</p>
+            <p id="addMessage" class="status-message">
+                {{ addMessage }}
+            </p>
 
         </div>
-
 
         <!-- Update -->
         <div class="dr-card">
             <h3>Update Record</h3>
 
             <input
+                id="updateIdInput"
                 v-model.number="updateData.id"
                 type="number"
                 placeholder="Record ID"
                 class="form-control mb-3">
 
             <input
+                id="updateTitleInput"
                 v-model="updateData.title"
                 placeholder="New title"
                 class="form-control mb-3">
 
             <input
+                id="updateArtistInput"
                 v-model="updateData.artist"
                 placeholder="New artist"
                 class="form-control mb-3">
 
-            <button @click="updateRecord()" class="btn btn-warning">
+            <input
+                id="updateYearInput"
+                v-model.number="updateData.year"
+                type="number"
+                placeholder="New year"
+                class="form-control mb-3">
+
+            <button id="updateButton"
+                    @click="updateRecord()"
+                    class="btn btn-warning">
                 Update Record
             </button>
 
-            <p class="status-message">{{ updatemessage }}</p>
+            <p id="updateMessage" class="status-message">
+                {{ updateMessage }}
+            </p>
 
         </div>
 
@@ -303,6 +287,7 @@
 </div>
 
 <script src="src/main.js"></script>
+<link rel="stylesheet" href="style.css">
 
 </body>
 </html>
