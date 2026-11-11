@@ -1,191 +1,332 @@
 
-const baseUrl = "https://drfrontend-fubzbcbcgecbh5b3.germanywestcentral-01.azurewebsites.net/api/MusicRecord";
+const baseUrl =
+    "https://drfrontend-fubzbcbcgecbh5b3.germanywestcentral-01.azurewebsites.net/api/MusicRecord";
 
-Vue.createApp({
+const authUrl =
+    "https://drfrontend-fubzbcbcgecbh5b3.germanywestcentral-01.azurewebsites.net/api/Auth/login";
+
+// Store JWT in memory while the app is running.
+let jwtToken = null;
+
+// Axios instance for protected API requests.
+const api = axios.create();
+
+// Automatically attach JWT to MusicRecord requests.
+api.interceptors.request.use(config => {
+    if (jwtToken) {
+        config.headers.Authorization = `Bearer ${jwtToken}`;
+    }
+
+    return config;
+});
+
+const app = Vue.createApp({
     data() {
         return {
+            // LOGIN
+            auth: {
+                username: "",
+                password: ""
+            },
+
+            loggedIn: false,
+            jwtToken: null,
+            role: null,
+            authMessage: "",
+
+            // RECORDS
             records: [],
             allRecords: [],
-
-            title: "",
-            artist: "",
-
-            titleToGetBy: "",
-            idToGetBy: null,
             singleRecord: null,
 
-            deleteId: null,
+            // SEARCH
+            title: "",
+            titleToGetBy: "",
+            idToGetBy: "",
+
+            // DELETE
+            deleteId: "",
             deleteMessage: "",
 
+            // ADD
             addData: {
                 title: "",
                 artist: "",
-                publicationYear: null,
-                duration: null
+                publicationYear: "",
+                duration: ""
             },
+
             addMessage: "",
 
+            // UPDATE
             updateData: {
-                id: null,
+                id: "",
                 title: "",
                 artist: "",
-                publicationYear: null,
-                duration: null
+                publicationYear: "",
+                duration: ""
             },
+
             updateMessage: ""
         };
     },
 
-    // Load records when website opens
-    created() {
-        this.getAllRecords();
-    },
-
     methods: {
 
-        // GET ALL
-        getAllRecords() {
-            return this.getAll(baseUrl);
+        // LOGIN
+        async login() {
+            this.authMessage = "";
+
+            try {
+                const response = await axios.post(authUrl, {
+                    Username: this.auth.username,
+                    Password: this.auth.password
+                });
+
+                // Get JWT from backend.
+                this.jwtToken = response.data.token;
+                jwtToken = this.jwtToken;
+
+                if (!this.jwtToken) {
+                    throw new Error("No JWT token received from the server.");
+                }
+
+                // Decode JWT payload to read the user's role.
+                const base64Payload = this.jwtToken
+                    .split(".")[1]
+                    .replace(/-/g, "+")
+                    .replace(/_/g, "/");
+
+                const paddedPayload =
+                    base64Payload.padEnd(
+                        Math.ceil(base64Payload.length / 4) * 4,
+                        "="
+                    );
+
+                const payload = JSON.parse(atob(paddedPayload));
+
+                this.role =
+                    payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] ||
+                    payload.role ||
+                    null;
+
+                this.loggedIn = true;
+                this.authMessage = "Login successful!";
+
+                // Load records after successful login.
+                await this.getAllRecords();
+
+            } catch (error) {
+                this.jwtToken = null;
+                jwtToken = null;
+                this.role = null;
+                this.loggedIn = false;
+
+                this.authMessage =
+                    error.response?.data ||
+                    error.message ||
+                    "Login failed. Check your username and password.";
+            }
         },
 
-        // GET BY TITLE
-        getByTitle(title) {
-            if (!title || title.trim() === "") {
-                this.getAllRecords();
+        // LOGOUT
+        logout() {
+            this.jwtToken = null;
+            jwtToken = null;
+
+            this.role = null;
+            this.loggedIn = false;
+
+            this.auth = {
+                username: "",
+                password: ""
+            };
+
+            this.records = [];
+            this.allRecords = [];
+            this.singleRecord = null;
+
+            this.authMessage = "You have logged out.";
+        },
+
+        // GET ALL RECORDS
+        async getAllRecords() {
+            await this.getAll(baseUrl);
+        },
+
+        async getAll(url) {
+            try {
+                const response = await api.get(url);
+
+                this.allRecords = response.data;
+                this.records = response.data;
+
+            } catch (error) {
+                console.error("Error getting records:", error);
+                this.addMessage = this.getErrorMessage(error);
+            }
+        },
+
+        // GET RECORDS BY TITLE
+        async getByTitle(title) {
+            if (!title || !title.trim()) {
+                await this.getAllRecords();
                 return;
             }
 
-            const url = baseUrl + "?titleContains=" +
-                encodeURIComponent(title);
+            const url =
+                `${baseUrl}?titleContains=${encodeURIComponent(title.trim())}`;
 
-            this.getRecords(url);
+            await this.getRecords(url);
         },
 
-        // GET RECORDS
         async getRecords(url) {
             try {
-                const response = await axios.get(url);
+                const response = await api.get(url);
                 this.records = response.data;
-                console.log(response.data);
-            } catch (ex) {
-                alert(ex.message);
+
+            } catch (error) {
+                console.error("Error searching records:", error);
+                this.addMessage = this.getErrorMessage(error);
             }
         },
 
-        // GET BY ID
+        // GET ONE RECORD BY ID
         async getById(id) {
-            if (!id || isNaN(id) || id <= 0) {
-                alert("Please enter a valid record ID");
+            if (!id) {
+                this.singleRecord = null;
                 return;
             }
 
-            const url = baseUrl + "/" + id;
-
             try {
-                const response = await axios.get(url);
+                const response = await api.get(`${baseUrl}/${id}`);
                 this.singleRecord = response.data;
-            } catch (ex) {
+
+            } catch (error) {
+                console.error("Error getting record:", error);
                 this.singleRecord = null;
-                alert(ex.message);
             }
         },
 
         // ADD RECORD
         async addRecord() {
+            const record = {
+                title: this.addData.title,
+                artist: this.addData.artist,
+                publicationYear: Number(this.addData.publicationYear),
+                duration: Number(this.addData.duration)
+            };
+
             if (
-                !this.addData.title.trim() ||
-                !this.addData.artist.trim() ||
-                !this.addData.publicationYear ||
-                this.addData.publicationYear <= 0 ||
-                !this.addData.duration ||
-                this.addData.duration <= 0
+                !record.title?.trim() ||
+                !record.artist?.trim() ||
+                !record.publicationYear ||
+                !record.duration
             ) {
-                alert("Please fill in all fields");
+                this.addMessage = "Please fill in all fields.";
                 return;
             }
 
             try {
-                const response = await axios.post(
-                    baseUrl,
-                    this.addData
-                );
+                await api.post(baseUrl, record);
 
                 this.addMessage = "Record added successfully!";
-
-                console.log("Added:", response.data);
 
                 this.addData = {
                     title: "",
                     artist: "",
-                    publicationYear: null,
-                    duration: null
+                    publicationYear: "",
+                    duration: ""
                 };
 
                 await this.getAllRecords();
 
-            } catch (ex) {
-                alert(ex.message);
+            } catch (error) {
+                console.error("Error adding record:", error);
+                this.addMessage = this.getErrorMessage(error);
             }
         },
 
         // DELETE RECORD
         async deleteRecord(id) {
-            if (!id || isNaN(id) || id <= 0) {
-                alert("Please enter a valid record ID");
+            if (!id) {
+                this.deleteMessage = "Please enter a record ID.";
                 return;
             }
 
-            const url = baseUrl + "/" + id;
-
             try {
-                await axios.delete(url);
+                await api.delete(`${baseUrl}/${id}`);
 
-                this.deleteMessage = "Record deleted!";
+                this.deleteMessage = "Record deleted successfully!";
+                this.deleteId = "";
 
                 await this.getAllRecords();
 
-            } catch (ex) {
-                alert(ex.message);
+            } catch (error) {
+                console.error("Error deleting record:", error);
+                this.deleteMessage = this.getErrorMessage(error);
             }
         },
 
         // UPDATE RECORD
         async updateRecord() {
-            if (
-                !this.updateData.id ||
-                this.updateData.id <= 0
-            ) {
-                alert("Please enter a valid record ID");
+            const id = this.updateData.id;
+
+            if (!id) {
+                this.updateMessage = "Please enter the ID of the record to update.";
                 return;
             }
 
-            const url = baseUrl + "/" + this.updateData.id;
+            const updatedRecord = {
+                title: this.updateData.title,
+                artist: this.updateData.artist,
+                publicationYear: Number(this.updateData.publicationYear),
+                duration: Number(this.updateData.duration)
+            };
+
+            if (
+                !updatedRecord.title?.trim() ||
+                !updatedRecord.artist?.trim() ||
+                !updatedRecord.publicationYear ||
+                !updatedRecord.duration
+            ) {
+                this.updateMessage = "Please fill in all update fields.";
+                return;
+            }
 
             try {
-                await axios.put(url, this.updateData);
+                await api.put(`${baseUrl}/${id}`, updatedRecord);
 
-                this.updateMessage = "Record updated!";
+                this.updateMessage = "Record updated successfully!";
+
+                this.updateData = {
+                    id: "",
+                    title: "",
+                    artist: "",
+                    publicationYear: "",
+                    duration: ""
+                };
 
                 await this.getAllRecords();
 
-            } catch (ex) {
-                alert(ex.message);
+            } catch (error) {
+                console.error("Error updating record:", error);
+                this.updateMessage = this.getErrorMessage(error);
             }
         },
 
-        // GET ALL FOR SORTING AND FILTERING
-        async getAll(url) {
-            try {
-                const response = await axios.get(url);
-
-                this.allRecords = response.data;
+        // FILTER RECORDS BY TITLE
+        filterByTitle(title) {
+            if (!title || !title.trim()) {
                 this.records = [...this.allRecords];
-
-                console.log(this.allRecords);
-
-            } catch (ex) {
-                alert(ex.message);
+                return;
             }
+
+            const search = title.toLowerCase().trim();
+
+            this.records = this.allRecords.filter(record =>
+                record.title?.toLowerCase().includes(search)
+            );
         },
 
         // SORT BY ID
@@ -196,37 +337,40 @@ Vue.createApp({
         // SORT BY TITLE
         sortByTitle() {
             this.records.sort((a, b) =>
-                a.title.localeCompare(b.title)
+                (a.title || "").localeCompare(b.title || "")
             );
         },
 
-        // SORT BY PUBLICATION YEAR ASCENDING
+        // SORT BY YEAR ASCENDING
         sortByYearAscending() {
-            this.records.sort((a, b) =>
-                a.publicationYear - b.publicationYear
+            this.records.sort(
+                (a, b) => a.publicationYear - b.publicationYear
             );
         },
 
-        // SORT BY PUBLICATION YEAR DESCENDING
+        // SORT BY YEAR DESCENDING
         sortByYearDescending() {
-            this.records.sort((a, b) =>
-                b.publicationYear - a.publicationYear
+            this.records.sort(
+                (a, b) => b.publicationYear - a.publicationYear
             );
         },
 
-        // FILTER BY TITLE
-        filterByTitle(title) {
-            if (!title) {
-                this.records = [...this.allRecords];
-                return;
+        // ERROR MESSAGE HELPER
+        getErrorMessage(error) {
+            const data = error.response?.data;
+
+            if (typeof data === "string") {
+                return data;
             }
 
-            this.records = this.allRecords.filter(record =>
-                record.title.toLowerCase().includes(
-                    title.toLowerCase()
-                )
+            return (
+                data?.message ||
+                data?.title ||
+                error.message ||
+                "Something went wrong."
             );
         }
     }
+});
 
-}).mount("#app");
+app.mount("#app");

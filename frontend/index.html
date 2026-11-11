@@ -1,209 +1,596 @@
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Records Catalogue</title>
 
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background: #f3f5f7;
+            color: #20252b;
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.js"></script>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        .site-header {
+            background: #172b3a;
+            border-bottom: 4px solid #e31837;
+            color: white;
+            padding: 1.5rem 1rem;
+            text-align: center;
+        }
 
-    <title>Danmarks Radio</title>
+        .site-header h1,
+        .site-header p {
+            margin: 0;
+        }
+
+        .site-header h1 {
+            font-size: 2rem;
+        }
+
+        .site-header p {
+            color: #d7e0e7;
+            margin-top: 0.25rem;
+        }
+
+        #app {
+            background: white;
+            border: 1px solid #d9e0e6;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(23, 43, 58, 0.08);
+            margin: 2rem auto;
+            max-width: 1000px;
+            padding: 1.5rem;
+        }
+
+        #app h3 {
+            border-bottom: 2px solid #d9e0e6;
+            color: #172b3a;
+            font-size: 1.25rem;
+            margin-top: 1.75rem;
+            padding-bottom: 0.5rem;
+        }
+
+        #app h3:first-child {
+            margin-top: 0;
+        }
+
+        input {
+            border: 1px solid #b8c4ce;
+            border-radius: 4px;
+            margin: 0.25rem;
+            padding: 0.5rem;
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            border-color: #1d5d8f;
+            outline: 2px solid rgba(29, 93, 143, 0.2);
+        }
+
+        button {
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        button.btn {
+            background: #1d5d8f;
+            border: 1px solid #1d5d8f;
+            border-radius: 4px;
+            color: white;
+            margin: 0.25rem;
+            padding: 0.55rem 0.9rem;
+        }
+
+        button.btn:hover {
+            background: #164a73;
+            border-color: #164a73;
+        }
+
+        button.btn-success {
+            background: #1d5d8f;
+            border-color: #1d5d8f;
+        }
+
+        button.btn-warning {
+            background: #c6283d;
+            border-color: #c6283d;
+            color: white;
+        }
+
+        button.btn-warning:hover {
+            background: #a51f31;
+            border-color: #a51f31;
+        }
+
+        ul {
+            background: #fafbfc;
+            border: 1px solid #d9e0e6;
+            border-radius: 4px;
+            margin-top: 1rem;
+            padding: 1rem 1rem 1rem 2rem;
+        }
+
+        table {
+            background: white;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            width: 100%;
+        }
+
+        th, td {
+            border-bottom: 1px solid #d9e0e6;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        th {
+            background: #e8eef3;
+            color: #172b3a;
+        }
+
+        table th button {
+            background: transparent;
+            border: 0;
+            color: #172b3a;
+            font-weight: bold;
+            padding: 0;
+        }
+
+        .year-sort-button {
+            background: #e8eef3 !important;
+            border: 1px solid #b8c4ce !important;
+            border-radius: 4px;
+            color: #1d5d8f !important;
+            font-size: 0.8rem;
+            font-weight: normal !important;
+            margin-left: 0.25rem;
+            padding: 0.2rem 0.45rem !important;
+        }
+
+        .year-sort-button:hover {
+            background: #d7e3ec !important;
+            color: #164a73 !important;
+        }
+
+        /* LOGIN DESIGN */
+        .login-container {
+            margin: 2rem auto;
+            max-width: 420px;
+            padding: 1.5rem;
+        }
+
+        .login-card {
+            background: #fafbfc;
+            border: 1px solid #d9e0e6;
+            border-radius: 8px;
+            box-shadow: 0 4px 14px rgba(23, 43, 58, 0.08);
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .login-card h2 {
+            color: #172b3a;
+            margin-top: 0;
+        }
+
+        .login-card p {
+            color: #647482;
+            margin-bottom: 1.5rem;
+        }
+
+        .login-card input {
+            display: block;
+            margin: 0.75rem 0;
+            padding: 0.8rem;
+            width: 100%;
+        }
+
+        .login-button {
+            background: #1d5d8f;
+            border: 0;
+            border-radius: 4px;
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            margin-top: 0.75rem;
+            padding: 0.8rem;
+            width: 100%;
+        }
+
+        .login-button:hover {
+            background: #164a73;
+        }
+
+        .login-message {
+            color: #c6283d;
+            margin-top: 1rem;
+            overflow-wrap: anywhere;
+        }
+
+        /* DASHBOARD */
+        .dashboard-top {
+            align-items: center;
+            background: #f3f5f7;
+            border-radius: 6px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+        }
+
+        .dashboard-top p {
+            margin: 0.25rem 0;
+        }
+
+        .section {
+            border-bottom: 1px solid #e1e6eb;
+            padding-bottom: 1rem;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-row input {
+            flex: 1 1 180px;
+        }
+
+        .message {
+            color: #1d5d8f;
+            font-size: 0.9rem;
+            margin: 0.5rem 0;
+        }
+
+        .footer {
+            color: #7b8994;
+            font-size: 0.85rem;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        @media (max-width: 600px) {
+            #app {
+                border: 0;
+                border-radius: 0;
+                margin: 0;
+                padding: 1rem;
+            }
+
+            input {
+                max-width: 100%;
+            }
+
+            .login-container {
+                padding: 0.5rem;
+            }
+
+            .login-card {
+                padding: 1.25rem;
+            }
+
+            .dashboard-top {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            table {
+                font-size: 0.85rem;
+            }
+
+            th, td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
 </head>
 
 <body>
+
     <header class="site-header">
-        <h1>Danmarks Radio</h1>
-        <p>Music Records</p>
+        <h1>Music Records Catalogue</h1>
+        <p>Your personal music collection</p>
     </header>
 
     <div id="app">
 
-        <!-- GET ALL RECORDS -->
-        <h3>Get All Music Records</h3>
+        <!-- LOGIN SCREEN -->
+        <div v-if="!loggedIn" class="login-container">
+            <div class="login-card">
+                <h2>Welcome back</h2>
+                <p>Log in to access your music records catalogue.</p>
 
-        <button id="getAllButton"
-                v-on:click="getAllRecords"
-                class="btn btn-primary">
-            Get all records
-        </button>
+                <form @submit.prevent="login">
+                    <input
+                        v-model="auth.username"
+                        type="text"
+                        placeholder="Username"
+                        autocomplete="username"
+                        required
+                    >
 
-        <br />
+                    <input
+                        v-model="auth.password"
+                        type="password"
+                        placeholder="Password"
+                        autocomplete="current-password"
+                        required
+                    >
 
-        <input v-model="titleToGetBy"
-               placeholder="title"
-               type="text"
-               v-on:keyup.enter="getByTitle(titleToGetBy)" />
+                    <button type="submit" class="login-button">
+                        Login →
+                    </button>
+                </form>
 
-        <button v-on:click="getByTitle(titleToGetBy)"
-                class="btn btn-primary">
-            Get by title
-        </button>
+                <div v-if="authMessage" class="login-message">
+                    {{ authMessage }}
+                </div>
+            </div>
+        </div>
 
-        <ul id="recordlist" v-if="records.length">
-            <li v-for="record in records" :key="record.id">
-                {{record.id}} :
-                {{record.title}}
-                {{record.artist}}
-                {{record.publicationYear}}
-                {{record.duration}}
-            </li>
-        </ul>
+        <!-- MUSIC RECORDS DASHBOARD -->
+        <div v-else>
 
-        <div v-else>No records</div>
+            <div class="dashboard-top">
+                <div>
+                    <strong>Welcome!</strong>
+                    <p v-if="role">Role: {{ role }}</p>
+                    <p v-else>You are logged in.</p>
+                </div>
 
+                <button class="btn btn-warning" @click="logout">
+                    Logout
+                </button>
+            </div>
 
-        <!-- ADD NEW RECORD -->
-        <h3>Add New Record</h3>
+            <!-- GET ALL RECORDS -->
+            <div class="section">
+                <h3>All Music Records</h3>
 
-        <input id="addTitleInput"
-               v-model="addData.title"
-               placeholder="title"
-               type="text" />
+                <button class="btn" @click="getAllRecords">
+                    Load all records
+                </button>
+            </div>
 
-        <input id="addArtistInput"
-               v-model="addData.artist"
-               placeholder="artist"
-               type="text" />
+            <!-- SEARCH BY TITLE -->
+            <div class="section">
+                <h3>Search Records by Title</h3>
 
-        <input id="addPublicationYearInput"
-               v-model.number="addData.publicationYear"
-               placeholder="publication year"
-               type="number" />
+                <form @submit.prevent="getByTitle(titleToGetBy)">
+                    <div class="form-row">
+                        <input
+                            v-model="titleToGetBy"
+                            type="text"
+                            placeholder="Enter a title"
+                        >
 
-        <input id="addDurationInput"
-               v-model.number="addData.duration"
-               placeholder="duration"
-               type="number" />
-
-        <button id="addButton"
-                v-on:click="addRecord()"
-                class="btn btn-success">
-            Add
-        </button>
-
-        <div id="addMessage">{{addMessage}}</div>
-
-
-        <!-- DELETE RECORD -->
-        <h3>Delete Record</h3>
-
-        <input v-model.number="deleteId"
-               placeholder="id"
-               type="number" />
-
-        <button v-on:click="deleteRecord(deleteId)"
-                class="btn btn-warning">
-            Delete
-        </button>
-
-        {{deleteMessage}}
-
-
-        <!-- UPDATE RECORD -->
-        <h3>Update Record</h3>
-
-        <input v-model.number="updateData.id"
-               placeholder="id"
-               type="number" />
-
-        <input v-model="updateData.title"
-               placeholder="title"
-               type="text" />
-
-        <input v-model="updateData.artist"
-               placeholder="artist"
-               type="text" />
-
-        <input v-model.number="updateData.publicationYear"
-               placeholder="publication year"
-               type="number" />
-
-        <input id="updateDurationInput"
-               v-model.number="updateData.duration"
-               placeholder="duration"
-               type="number" />
-
-        <button v-on:click="updateRecord()"
-                class="btn btn-success">
-            Update
-        </button>
-
-        <div>{{updateMessage}}</div>
-
-
-        <!-- FIND AND SORT RECORDS -->
-        <h3>Find and sort records</h3>
-
-        <input placeholder="Title"
-               type="text"
-               v-model="title"
-               v-on:keyup.enter="filterByTitle(title)" />
-
-        <button v-on:click="filterByTitle(title)"
-                class="btn btn-primary">
-            Filter
-        </button>
-
-        <table v-if="records.length > 0"
-               class="table table-striped">
-
-            <thead>
-                <tr>
-                    <th>
-                        <button v-on:click="sortById()">
-                            Id
-                        </button>
-                    </th>
-
-                    <th>
-                        <button v-on:click="sortByTitle()">
-                            Title
-                        </button>
-                    </th>
-
-                    <th>Artist</th>
-
-                    <th>
-                        Publication Year
-
-                        <button class="year-sort-button"
-                                v-on:click="sortByYearAscending()"
-                                aria-label="Sort publication year ascending">
-                            ↑
+                        <button class="btn" type="submit">
+                            Search
                         </button>
 
-                        <button class="year-sort-button"
-                                v-on:click="sortByYearDescending()"
-                                aria-label="Sort publication year descending">
-                            ↓
+                        <button
+                            class="btn"
+                            type="button"
+                            @click="titleToGetBy = ''; getAllRecords()"
+                        >
+                            Clear
                         </button>
-                    </th>
+                    </div>
+                </form>
+            </div>
 
-                    <th>Duration</th>
-                </tr>
-            </thead>
+            <!-- ADD RECORD -->
+            <div class="section">
+                <h3>Add a Music Record</h3>
 
-            <tbody>
-                <tr v-for="record in records" :key="record.id">
-                    <td>{{record.id}}</td>
-                    <td>{{record.title}}</td>
-                    <td>{{record.artist}}</td>
-                    <td>{{record.publicationYear}}</td>
-                    <td>{{record.duration}}</td>
-                </tr>
-            </tbody>
+                <form @submit.prevent="addRecord">
+                    <div class="form-row">
+                        <input
+                            v-model="addData.title"
+                            type="text"
+                            placeholder="Title"
+                            required
+                        >
 
-        </table>
+                        <input
+                            v-model="addData.artist"
+                            type="text"
+                            placeholder="Artist"
+                            required
+                        >
 
-        <div v-else>No such records</div>
+                        <input
+                            v-model="addData.publicationYear"
+                            type="number"
+                            placeholder="Publication year"
+                            required
+                        >
+
+                        <input
+                            v-model="addData.duration"
+                            type="number"
+                            placeholder="Duration"
+                            required
+                        >
+                    </div>
+
+                    <button class="btn btn-success" type="submit">
+                        Add Record
+                    </button>
+                </form>
+
+                <p v-if="addMessage" class="message">
+                    {{ addMessage }}
+                </p>
+            </div>
+
+            <!-- DELETE RECORD -->
+            <div class="section">
+                <h3>Delete a Music Record</h3>
+
+                <form @submit.prevent="deleteRecord(deleteId)">
+                    <div class="form-row">
+                        <input
+                            v-model="deleteId"
+                            type="number"
+                            placeholder="Record ID"
+                            required
+                        >
+
+                        <button class="btn btn-warning" type="submit">
+                            Delete Record
+                        </button>
+                    </div>
+                </form>
+
+                <p v-if="deleteMessage" class="message">
+                    {{ deleteMessage }}
+                </p>
+            </div>
+
+            <!-- UPDATE RECORD -->
+            <div class="section">
+                <h3>Update a Music Record</h3>
+
+                <form @submit.prevent="updateRecord">
+                    <div class="form-row">
+                        <input
+                            v-model="updateData.id"
+                            type="number"
+                            placeholder="Record ID"
+                            required
+                        >
+
+                        <input
+                            v-model="updateData.title"
+                            type="text"
+                            placeholder="New title"
+                            required
+                        >
+
+                        <input
+                            v-model="updateData.artist"
+                            type="text"
+                            placeholder="New artist"
+                            required
+                        >
+
+                        <input
+                            v-model="updateData.publicationYear"
+                            type="number"
+                            placeholder="New publication year"
+                            required
+                        >
+
+                        <input
+                            v-model="updateData.duration"
+                            type="number"
+                            placeholder="New duration"
+                            required
+                        >
+                    </div>
+
+                    <button class="btn btn-success" type="submit">
+                        Update Record
+                    </button>
+                </form>
+
+                <p v-if="updateMessage" class="message">
+                    {{ updateMessage }}
+                </p>
+            </div>
+
+            <!-- FILTER AND SORT -->
+            <div class="section">
+                <h3>Filter and Sort Records</h3>
+
+                <div class="form-row">
+                    <input
+                        v-model="title"
+                        @input="filterByTitle(title)"
+                        type="text"
+                        placeholder="Filter displayed records by title"
+                    >
+
+                    <button class="btn" @click="sortById">
+                        Sort by ID
+                    </button>
+
+                    <button class="btn" @click="sortByTitle">
+                        Sort by Title
+                    </button>
+
+                    <button
+                        class="year-sort-button"
+                        @click="sortByYearAscending"
+                    >
+                        Year ↑
+                    </button>
+
+                    <button
+                        class="year-sort-button"
+                        @click="sortByYearDescending"
+                    >
+                        Year ↓
+                    </button>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Artist</th>
+                                <th>Publication Year</th>
+                                <th>Duration</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr v-for="record in records" :key="record.id">
+                                <td>{{ record.id }}</td>
+                                <td>{{ record.title }}</td>
+                                <td>{{ record.artist }}</td>
+                                <td>{{ record.publicationYear }}</td>
+                                <td>{{ record.duration }}</td>
+                            </tr>
+
+                            <tr v-if="records.length === 0">
+                                <td colspan="5">
+                                    No records to display.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer">
+            Music Records Catalogue
+        </div>
 
     </div>
 
+    <!-- Vue and Axios -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <!-- Your JavaScript file -->
     <script src="main.js"></script>
 
 </body>
